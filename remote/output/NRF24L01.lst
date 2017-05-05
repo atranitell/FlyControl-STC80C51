@@ -1,0 +1,262 @@
+C51 COMPILER V9.52.0.0   NRF24L01                                                          09/21/2015 00:52:50 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE NRF24L01
+OBJECT MODULE PLACED IN .\output\NRF24L01.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE src\NRF24L01.C LARGE OMF2 BROWSE DEBUG PRINT(.\output\NRF24L01.lst) OBJE
+                    -CT(.\output\NRF24L01.obj)
+
+line level    source
+
+   1          
+   2          #include <intrins.h>
+   3          
+   4          #include "config.h"
+   5          #include "spi.h"
+   6          #include "NRF24L01.H"
+   7          #include"delay.h"
+   8          //*********************************************NRF24L01*************************************
+   9          #define TX_ADR_WIDTH    5       // 5 uints TX address width
+  10          #define RX_ADR_WIDTH    5       // 5 uints RX address width
+  11          #define TX_PLOAD_WIDTH  20      // 20 uints TX payload
+  12          #define RX_PLOAD_WIDTH  20      // 20 uints TX payload
+  13          u8 code TX_ADDRESS[TX_ADR_WIDTH]= {0x34,0x43,0x10,0x10,0x01};   //±æµÿµÿ÷∑
+  14          u8 code RX_ADDRESS[RX_ADR_WIDTH]= {0x34,0x43,0x10,0x10,0x01};   //Ω” ’µÿ÷∑
+  15          
+  16          //***************************************NRF24L01ºƒ¥Ê∆˜÷∏¡Ó***********************************************
+             -********
+  17          #define READ_REG        0x00    // ∂¡ºƒ¥Ê∆˜÷∏¡Ó
+  18          #define WRITE_REG       0x20    // –¥ºƒ¥Ê∆˜÷∏¡Ó
+  19          #define RD_RX_PLOAD     0x61    // ∂¡»°Ω” ’ ˝æ›÷∏¡Ó
+  20          #define WR_TX_PLOAD     0xA0    // –¥¥˝∑¢ ˝æ›÷∏¡Ó
+  21          #define FLUSH_TX        0xE1    // ≥Âœ¥∑¢ÀÕ FIFO÷∏¡Ó
+  22          #define FLUSH_RX        0xE2    // ≥Âœ¥Ω” ’ FIFO÷∏¡Ó
+  23          #define REUSE_TX_PL     0xE3    // ∂®“Â÷ÿ∏¥◊∞‘ÿ ˝æ›÷∏¡Ó
+  24          //#define NOP             0xFF          // ±£¡Ù
+  25          //*************************************SPI(nRF24L01)ºƒ¥Ê∆˜µÿ÷∑********************************************
+             -********
+  26          #define CONFIG2         0x00  // ≈‰÷√ ’∑¢◊¥Ã¨£¨CRC–£—Èƒ£ Ω“‘º∞ ’∑¢◊¥Ã¨œÏ”¶∑Ω Ω
+  27          #define EN_AA           0x01  // ◊‘∂Ø”¶¥π¶ƒ‹…Ë÷√
+  28          #define EN_RXADDR       0x02  // ø…”√–≈µ¿…Ë÷√
+  29          #define SETUP_AW        0x03  //  ’∑¢µÿ÷∑øÌ∂»…Ë÷√
+  30          #define SETUP_RETR      0x04  // ◊‘∂Ø÷ÿ∑¢π¶ƒ‹…Ë÷√
+  31          #define RF_CH           0x05  // π§◊˜∆µ¬ …Ë÷√
+  32          #define RF_SETUP        0x06  // ∑¢…‰ÀŸ¬ °¢π¶∫ƒπ¶ƒ‹…Ë÷√
+  33          #define STATUS          0x07  // ◊¥Ã¨ºƒ¥Ê∆˜
+  34          #define OBSERVE_TX      0x08  // ∑¢ÀÕº‡≤‚π¶ƒ‹
+  35          #define CD              0x09  // µÿ÷∑ºÏ≤‚           
+  36          #define RX_ADDR_P0      0x0A  // ∆µµ¿0Ω” ’ ˝æ›µÿ÷∑
+  37          #define RX_ADDR_P1      0x0B  // ∆µµ¿1Ω” ’ ˝æ›µÿ÷∑
+  38          #define RX_ADDR_P2      0x0C  // ∆µµ¿2Ω” ’ ˝æ›µÿ÷∑
+  39          #define RX_ADDR_P3      0x0D  // ∆µµ¿3Ω” ’ ˝æ›µÿ÷∑
+  40          #define RX_ADDR_P4      0x0E  // ∆µµ¿4Ω” ’ ˝æ›µÿ÷∑
+  41          #define RX_ADDR_P5      0x0F  // ∆µµ¿5Ω” ’ ˝æ›µÿ÷∑
+  42          #define TX_ADDR         0x10  // ∑¢ÀÕµÿ÷∑ºƒ¥Ê∆˜
+  43          #define RX_PW_P0        0x11  // Ω” ’∆µµ¿0Ω” ’ ˝æ›≥§∂»
+  44          #define RX_PW_P1        0x12  // Ω” ’∆µµ¿0Ω” ’ ˝æ›≥§∂»
+  45          #define RX_PW_P2        0x13  // Ω” ’∆µµ¿0Ω” ’ ˝æ›≥§∂»
+  46          #define RX_PW_P3        0x14  // Ω” ’∆µµ¿0Ω” ’ ˝æ›≥§∂»
+  47          #define RX_PW_P4        0x15  // Ω” ’∆µµ¿0Ω” ’ ˝æ›≥§∂»
+  48          #define RX_PW_P5        0x16  // Ω” ’∆µµ¿0Ω” ’ ˝æ›≥§∂»
+  49          #define FIFO_STATUS     0x17  // FIFO’ª»Î’ª≥ˆ◊¥Ã¨ºƒ¥Ê∆˜…Ë÷√
+  50          
+  51          //******************************************************************************************
+  52          u8              bdata sta;   //◊¥Ã¨±Í÷æ
+C51 COMPILER V9.52.0.0   NRF24L01                                                          09/21/2015 00:52:50 PAGE 2   
+
+  53          sbit    RX_DR   =sta^6;
+  54          sbit    TX_DS   =sta^5;
+  55          sbit    MAX_RT  =sta^4;
+  56          sbit  TX_FULL =sta^0;
+  57          
+  58          //****************************************************************************************
+  59          /*NRF24L01≥ı ºªØ
+  60          //***************************************************************************************/
+  61          void init_NRF24L01(void)
+  62          {
+  63   1              CE=0;    // chip enable
+  64   1              CSN=1;   // Spi  disable 
+  65   1              SCK=0;   // 
+  66   1              SPI_Write_Buf(WRITE_REG + TX_ADDR, TX_ADDRESS, TX_ADR_WIDTH);    // –¥±æµÿµÿ÷∑  
+  67   1              SPI_Write_Buf(WRITE_REG + RX_ADDR_P0, RX_ADDRESS, RX_ADR_WIDTH); // –¥Ω” ’∂Àµÿ÷∑
+  68   1              SPI_RW_Reg(WRITE_REG + EN_AA, 0x01);      //  ∆µµ¿0◊‘∂Ø ACK”¶¥‘ –Ì     
+  69   1              SPI_RW_Reg(WRITE_REG + EN_RXADDR, 0x01);  //  ‘ –ÌΩ” ’µÿ÷∑÷ª”–∆µµ¿0£¨»Áπ˚–Ë“™∂‡∆µµ¿ø…“‘≤ŒøºPage21  
+  70   1              SPI_RW_Reg(WRITE_REG + RF_CH, 0x6e);        //   …Ë÷√–≈µ¿π§◊˜Œ™2.4GHZ£¨ ’∑¢±ÿ–Î“ª÷¬
+  71   1              SPI_RW_Reg(WRITE_REG + RX_PW_P0, RX_PLOAD_WIDTH); //…Ë÷√Ω” ’ ˝æ›≥§∂»£¨±æ¥Œ…Ë÷√Œ™32◊÷Ω⁄
+  72   1              SPI_RW_Reg(WRITE_REG + RF_SETUP, 0x27);                 //…Ë÷√∑¢…‰ÀŸ¬ Œ™1MB/S£¨∑¢…‰π¶¬ Œ™◊Ó¥Û÷µ+7dB£¨”…”⁄”–X2401Lπ¶∑≈
+             -£¨ µº +21dbm ‰≥ˆ
+  73   1      }
+  74          /****************************************************************************************************
+  75          /*∫Ø ˝£∫u8 SPI_RW(u8 uchar)
+  76          /*π¶ƒ‹£∫NRF24L01µƒSPI–¥ ±–Ú
+  77          /****************************************************************************************************/
+  78          u8 SPI_RW(u8 dat)
+  79          {
+  80   1          B = dat;
+  81   1              P_24L01_MOSI = B7;      /*_nop_();*/    P_24L01_SCK = 1;        B7 = P_24L01_MISO;      P_24L01_SCK = 0;
+  82   1              P_24L01_MOSI = B6;      /*_nop_();*/    P_24L01_SCK = 1;        B6 = P_24L01_MISO;      P_24L01_SCK = 0;
+  83   1              P_24L01_MOSI = B5;      /*_nop_();*/    P_24L01_SCK = 1;        B5 = P_24L01_MISO;      P_24L01_SCK = 0;
+  84   1              P_24L01_MOSI = B4;      /*_nop_();*/    P_24L01_SCK = 1;        B4 = P_24L01_MISO;      P_24L01_SCK = 0;
+  85   1              P_24L01_MOSI = B3;      /*_nop_();*/    P_24L01_SCK = 1;        B3 = P_24L01_MISO;      P_24L01_SCK = 0;
+  86   1              P_24L01_MOSI = B2;      /*_nop_();*/    P_24L01_SCK = 1;        B2 = P_24L01_MISO;      P_24L01_SCK = 0;
+  87   1              P_24L01_MOSI = B1;      /*_nop_();*/    P_24L01_SCK = 1;        B1 = P_24L01_MISO;      P_24L01_SCK = 0;
+  88   1              P_24L01_MOSI = B0;      /*_nop_();*/    P_24L01_SCK = 1;        B0 = P_24L01_MISO;      P_24L01_SCK = 0;
+  89   1              P_24L01_MOSI = 0;
+  90   1          return(B);                            // return read byte
+  91   1      }
+  92          /*u8 SPI_RW(u8 dat)
+  93          {
+  94                          return(SPItransfer(dat));
+  95          
+  96          }*/
+  97          /****************************************************************************************************
+  98          /*∫Ø ˝£∫uchar SPI_Read(uchar reg)
+  99          /*π¶ƒ‹£∫NRF24L01µƒSPI ±–Ú
+ 100          /****************************************************************************************************/
+ 101          
+ 102          u8 SPI_Read(u8 reg)
+ 103          {
+ 104   1              u8 reg_val;
+ 105   1              
+ 106   1              CSN = 0;                // CSN low, initialize SPI communication...
+ 107   1              delay_us(12);
+ 108   1              SPI_RW(reg);            // Select register to read from..
+ 109   1              delay_us(12);
+ 110   1              reg_val = SPI_RW(0);    // ..then read registervalue
+ 111   1              delay_us(12);
+ 112   1              CSN = 1;                // CSN high, terminate SPI communication
+ 113   1              
+C51 COMPILER V9.52.0.0   NRF24L01                                                          09/21/2015 00:52:50 PAGE 3   
+
+ 114   1              return(reg_val);        // return register value
+ 115   1      }
+ 116          
+ 117          
+ 118          /****************************************************************************************************/
+ 119          /*π¶ƒ‹£∫NRF24L01∂¡–¥ºƒ¥Ê∆˜∫Ø ˝
+ 120          /****************************************************************************************************/
+ 121          u8 SPI_RW_Reg(u8 reg, u8 value)
+ 122          {
+ 123   1              u8 status;
+ 124   1              
+ 125   1              CSN = 0;                   // CSN low, init SPI transaction
+ 126   1              status = SPI_RW(reg);      // select register
+ 127   1              SPI_RW(value);             // ..and write value to it..
+ 128   1              CSN = 1;                   // CSN high again
+ 129   1              
+ 130   1              return(status);            // return nRF24L01 status
+ 131   1      }
+ 132          /****************************************************************************************************/
+ 133          /*∫Ø ˝£∫u8 SPI_Read_Buf(u8 reg, u8 *pBuf, u8 uchars)
+ 134          /*π¶ƒ‹: ”√”⁄∂¡ ˝æ›£¨reg£∫Œ™ºƒ¥Ê∆˜µÿ÷∑£¨pBuf£∫Œ™¥˝∂¡≥ˆ ˝æ›µÿ÷∑£¨uchars£∫∂¡≥ˆ ˝æ›µƒ∏ˆ ˝
+ 135          /****************************************************************************************************/
+ 136          u8 SPI_Read_Buf(u8 reg, u8 *pBuf, u8 uchars)
+ 137          {
+ 138   1              u8 status,uchar_ctr;
+ 139   1              
+ 140   1              CSN = 0;                                // Set CSN low, init SPI tranaction
+ 141   1              status = SPI_RW(reg);                   // Select register to write to and read status
+ 142   1              
+ 143   1              for(uchar_ctr=0; uchar_ctr<uchars; uchar_ctr++)
+ 144   1                      pBuf[uchar_ctr] = SPI_RW(0);    // 
+ 145   1              
+ 146   1              CSN = 1;                           
+ 147   1              
+ 148   1              return(status);                    // return nRF24L01 status
+ 149   1      }
+ 150          
+ 151          
+ 152          /*********************************************************************************************************
+ 153          /*∫Ø ˝£∫u8 SPI_Write_Buf(uchar reg, uchar *pBuf, uchar uchars)
+ 154          /*π¶ƒ‹: ”√”⁄–¥ ˝æ›£∫Œ™ºƒ¥Ê∆˜µÿ÷∑£¨pBuf£∫Œ™¥˝–¥»Î ˝æ›µÿ÷∑£¨uchars£∫–¥»Î ˝æ›µƒ∏ˆ ˝
+ 155          /*********************************************************************************************************
+             -/
+ 156          u8 SPI_Write_Buf(u8 reg, u8 *pBuf, u8 uchars)
+ 157          {
+ 158   1              u8 status,uchar_ctr;
+ 159   1              
+ 160   1              CSN = 0;            //SPI πƒ‹       
+ 161   1              status = SPI_RW(reg);   
+ 162   1              for(uchar_ctr=0; uchar_ctr<uchars; uchar_ctr++) //
+ 163   1              SPI_RW(*pBuf++);
+ 164   1              CSN = 1;           //πÿ±’SPI
+ 165   1              return(status);    // 
+ 166   1      }
+ 167          /****************************************************************************************************/
+ 168          /*∫Ø ˝£∫void SetRX_Mode(void)
+ 169          /*π¶ƒ‹£∫ ˝æ›Ω” ’≈‰÷√ 
+ 170          /****************************************************************************************************/
+ 171          void SetRX_Mode(void)
+ 172          {
+ 173   1              CE=0;
+ 174   1              SPI_RW_Reg(WRITE_REG + CONFIG2, 0x0f);                  // IRQ ’∑¢ÕÍ≥…÷–∂œœÏ”¶£¨16ŒªCRC £¨÷˜Ω” ’
+C51 COMPILER V9.52.0.0   NRF24L01                                                          09/21/2015 00:52:50 PAGE 4   
+
+ 175   1              CE = 1; 
+ 176   1      }
+ 177          /******************************************************************************************************/
+ 178          /*∫Ø ˝£∫u8 nRF24L01_RxPacket(u8* rx_buf)
+ 179          /*π¶ƒ‹£∫ ˝æ›∂¡»°∫Û∑≈»Árx_bufΩ” ’ª∫≥Â«¯÷–
+ 180          /******************************************************************************************************/
+ 181          
+ 182          u8 nRF24L01_RxPacket(u8* rx_buf)
+ 183          {
+ 184   1        u8 revale=0;
+ 185   1              
+ 186   1              sta=SPI_Read(STATUS);   // ∂¡»°◊¥Ã¨ºƒ¥Ê∆‰¿¥≈–∂œ ˝æ›Ω” ’◊¥øˆ
+ 187   1              CE = 0;                         
+ 188   1              if(RX_DR)                               // ≈–∂œ «∑ÒΩ” ’µΩ ˝æ›
+ 189   1              {
+ 190   2                  
+ 191   2                      SPI_Read_Buf(RD_RX_PLOAD,rx_buf,TX_PLOAD_WIDTH);// read receive payload from RX_FIFO buffer
+ 192   2                      revale =1;                      //∂¡»° ˝æ›ÕÍ≥…±Í÷æ
+ 193   2              }
+ 194   1              SPI_RW_Reg(WRITE_REG+STATUS,sta);   //Ω” ’µΩ ˝æ›∫ÛRX_DR,TX_DS,MAX_PT∂º÷√∏ﬂŒ™1£¨Õ®π˝–¥1¿¥«Â≥˛÷–∂œ±Í÷æ
+ 195   1              SPI_RW_Reg(0xE2,0xff);//«Â≥˛RX FIFOµƒ ˝æ›
+ 196   1              CE=1;                                                                     //£°£°£°£°£°£°£°£°£°£°£°£°£°£°£
+             -°£°£°£°£°£°£°£°£°£°£°£°£°£°£°
+ 197   1              return revale;
+ 198   1      }
+ 199          
+ 200          
+ 201          /*********************************************************************************************************
+             -**
+ 202          /*∫Ø ˝£∫void nRF24L01_TxPacket(u8 * tx_buf)
+ 203          /*π¶ƒ‹£∫∑¢ÀÕ tx_buf÷– ˝æ›
+ 204          /*********************************************************************************************************
+             -*/
+ 205          
+ 206          void nRF24L01_TxPacket(u8 * tx_buf)
+ 207          {
+ 208   1              //SPI_RW_Reg(WRITE_REG+STATUS,0xff);
+ 209   1              SPI_RW_Reg(0xE1,0xff);//«Â≥˛TX FIFOµƒ ˝æ›
+ 210   1              CE=0;           
+ 211   1      
+ 212   1              SPI_Write_Buf(WR_TX_PLOAD, tx_buf, TX_PLOAD_WIDTH);                          
+ 213   1              SPI_RW_Reg(WRITE_REG + CONFIG2, 0x0e); 
+ 214   1              SPI_RW_Reg(WRITE_REG+STATUS,0xff);
+ 215   1              CE=1;            
+ 216   1              delay_us(10);   //CE∏ﬂµÁ∆Ω¥Û”⁄10us≤≈ƒ‹Ω¯»Î∑¢…‰ƒ£ Ω
+ 217   1      }
+ 218          
+ 219          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    486    ----
+   CONSTANT SIZE    =     10    ----
+   XDATA SIZE       =   ----      16
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+C51 COMPILER V9.52.0.0   NRF24L01                                                          09/21/2015 00:52:50 PAGE 5   
+
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

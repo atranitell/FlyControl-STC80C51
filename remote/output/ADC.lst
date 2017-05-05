@@ -1,0 +1,109 @@
+C51 COMPILER V9.52.0.0   ADC                                                               09/21/2015 00:52:50 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE ADC
+OBJECT MODULE PLACED IN .\output\ADC.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE src\ADC.c LARGE OMF2 BROWSE DEBUG PRINT(.\output\ADC.lst) OBJECT(.\outpu
+                    -t\ADC.obj)
+
+line level    source
+
+   1          //========================================================================
+   2          //      STCunio Studio淘宝http://shop112966725.taobao.com
+   3          //      STCunio Studio QQ群:117112538
+   4          //      作者：mingbozhu
+   5          //      联系方式：13724273732
+   6          //      邮箱：mingbozhu@yeah.net
+   7          //      修改日期2014.11.7
+   8          //      版本V1.1
+   9          //========================================================================
+  10          #include        "adc.h"
+  11          
+  12          void analogbegin(u8 pin)
+  13          {
+  14   1           if(pin > ADC_CH7)  return; //错误,返回1024,调用的程序判断
+  15   1           P1ASF=1<<pin;//设置模拟通道
+  16   1           ADC_CONTR=(ADC_CONTR & ~ADC_90T) | ADC_90T;//设置ADC的时钟
+  17   1           ADC_CONTR |= 0x80;//打开ADC电源
+  18   1          //PCON2 |=  (1<<5); //10位AD结果的高2位放ADC_RES的低2位，低8位在ADC_RESL。
+  19   1           PCON2 &= ~(1<<5);  //10位AD结果的高8位放ADC_RES，低2位在ADC_RESL的低2位。     
+  20   1      }
+  21          //========================================================================
+  22          // 函数: analogResult(u8 pin)
+  23          // 描述: 获取模拟采样结果函数。
+  24          // 参数: 无
+  25          // 返回: adc，10位AD的值
+  26          // 版本: VER1.1
+  27          // 日期: 2014-11-17
+  28          // 备注: AD中断服务程序调用
+  29          //========================================================================
+  30          u16 analogResult()
+  31          {
+  32   1          u16 adc;
+  33   1          ADC_CONTR &= ~ADC_FLAG;
+  34   1          adc = (u16)ADC_RES;//10位AD结果的高8位放ADC_RES,低2位放在ADC_RESL。
+  35   1          adc = (adc << 2) | (ADC_RESL & 3);
+  36   1          ADC_RES = 0;
+  37   1          ADC_RESL = 0;
+  38   1          return      adc; 
+  39   1      }
+  40          //========================================================================
+  41          // 函数: analogSetup(u8 pin)
+  42          // 描述: 获取模拟采样结果函数。
+  43          // 参数: pin，选择需要的模拟引脚。
+  44          // 返回: adc，10位AD的值
+  45          // 版本: VER1.1
+  46          // 日期: 2014-11-17
+  47          // 备注: AD中断服务程序调用
+  48          //========================================================================
+  49          void analogStart(u8 pin)
+  50          {
+  51   1          if(pin > ADC_CH7)   return; 
+  52   1          if(PWMCFG&0xbf) ADC_CONTR = (ADC_CONTR & 0xe0) | pin;//若是CBTADC为1，则ADC_START无需置1
+  53   1          else ADC_CONTR = (ADC_CONTR & 0xe0) | ADC_START | pin; 
+  54   1      }
+C51 COMPILER V9.52.0.0   ADC                                                               09/21/2015 00:52:50 PAGE 2   
+
+  55          //========================================================================
+  56          // 函数: analogRead(u8 pin)
+  57          // 描述: 模拟采样函数。
+  58          // 参数: pin，选择需要的模拟引脚。
+  59          // 返回: adc，10位AD的值
+  60          // 版本: VER1.1
+  61          // 日期: 2014-11-17
+  62          // 备注: 不能用在AD中断服务程序调用
+  63          //========================================================================
+  64          u16 analogRead(u8 pin)
+  65          {
+  66   1          u16 adc;
+  67   1          u8  i;
+  68   1          analogbegin(pin);
+  69   1          analogStart(pin);
+  70   1          for(i=0; i<250; i++)                //超时
+  71   1          {
+  72   2            if(ADC_CONTR & ADC_FLAG)
+  73   2            {
+  74   3              adc = analogResult();
+  75   3              return  adc;
+  76   3            }
+  77   2          }    
+  78   1         return       1024;   //错误,返回1024,调用的程序判断
+  79   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    122    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,83 @@
+C51 COMPILER V9.52.0.0   SPI                                                               09/21/2015 00:52:50 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE SPI
+OBJECT MODULE PLACED IN .\output\spi.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE src\spi.c LARGE OMF2 BROWSE DEBUG PRINT(.\output\spi.lst) OBJECT(.\outpu
+                    -t\spi.obj)
+
+line level    source
+
+   1          //========================================================================
+   2          //      STCunio Studio淘宝http://shop112966725.taobao.com
+   3          //      STCunio Studio QQ群:117112538
+   4          //      作者：mingbozhu
+   5          //      联系方式：13724273732
+   6          //      邮箱：mingbozhu@yeah.net
+   7          //      修改日期2014.11.7
+   8          //      版本V1.1
+   9          //========================================================================
+  10          
+  11          
+  12          #include        "spi.h"
+  13          #include  "GPIO.h"
+  14          void    SPIsetGroup(u8 Group)
+  15          {
+  16   1              AUXR1 = (AUXR1 & ~(3<<2)) | Group;      
+  17   1      }
+  18          void    SPIbegin(void)
+  19          {
+  20   1              SPCTL |=  (1<<6);//SPI enable   
+  21   1              SPCTL |=  (1<<7);       //enable SS, conform Master or Slave by SS pin.
+  22   1              SPCTL |=  (1<<4);       //master        
+  23   1              
+  24   1      }
+  25          void SPIsetBitOrder(u8 bitOrder)
+  26          {
+  27   1                      if(bitOrder==LSBFIRST)SPCTL |= ~(1<<5); //LSB first
+  28   1                      else SPCTL &= ~(1<<5);  //MSB first                     
+  29   1      }
+  30          void SPIsetClockDivider(u8 rate)
+  31          {
+  32   1                      SPCTL = (SPCTL & ~3) | (rate & 3);                                      //set speed
+  33   1      
+  34   1      }
+  35          //模式0 上升沿采样 下降沿移位 SCK闲置时为0 SPI_MODE0 SPCTL &= ~(1<<3);SPCTL  &= ~(1<<2)
+  36          //模式1 上升沿移位 下降沿采样                                                    SPI_MODE1 SPCTL &= ~(1<<3);SPCTL  |=  (1<<2)
+  37          //模式2 下降沿采样 上升沿移位 SCK闲置时为1 SPI_MODE2 SPCTL |=  (1<<3);SPCTL  &= ~(1<<2)
+  38          //模式3 下降沿移位 上升沿采样                                                    SPI_MODE2 SPCTL |=  (1<<3);SPCTL  |=  (1<<2)
+  39          void SPIsetDataMode(u8 mode)
+  40          {
+  41   1                      SPCTL =(SPCTL & ~(3<<2))|(mode<<2);
+  42   1      }
+  43          u8 SPItransfer(u8 _data)
+  44          {
+  45   1                SPDAT=_data;
+  46   1                      while (!(SPSTAT & 0x80));
+  47   1                      SPSTAT &=0x80;
+  48   1          return SPDAT;
+  49   1      }
+  50          void SPIend()
+  51          {
+  52   1            SPCTL &= ~(1<<6);
+  53   1      }
+
+C51 COMPILER V9.52.0.0   SPI                                                               09/21/2015 00:52:50 PAGE 2   
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     72    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

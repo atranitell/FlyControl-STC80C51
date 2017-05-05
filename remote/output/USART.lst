@@ -1,0 +1,495 @@
+C51 COMPILER V9.52.0.0   USART                                                             09/21/2015 00:52:50 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE USART
+OBJECT MODULE PLACED IN .\output\USART.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE src\USART.C LARGE OMF2 BROWSE DEBUG PRINT(.\output\USART.lst) OBJECT(.\o
+                    -utput\USART.obj)
+
+line level    source
+
+   1          /*------------------------------------------------------------------*/
+   2          //========================================================================
+   3          //      STCunio Studio淘宝http://shop112966725.taobao.com
+   4          //      STCunio Studio QQ群:117112538
+   5          //      作者：mingbozhu
+   6          //      联系方式：13724273732
+   7          //      邮箱：mingbozhu@yeah.net
+   8          //      修改日期2014.11.17
+   9          //      版本V1.1
+  10          //========================================================================
+  11          #include "USART.h"
+  12          #include<stdarg.h>
+  13          //串口1
+  14          #define  OLEN  32                      /* 串口1输出缓冲器大小*/
+  15          volatile unsigned char  ostart;        /* 输出缓冲器起始地址 */
+  16          volatile unsigned char  oend;          /* 输出缓冲器终止地址 */
+  17          xdata  volatile  char  outbuf[OLEN];           /* 输出缓冲器*/
+  18          #define  ILEN  16                      /* 串口1输入缓冲器大小*/
+  19          volatile unsigned char  istart;        /* 输入缓冲器起始地址 */
+  20          volatile unsigned char  iend;          /* 输入缓冲器终止地址 */
+  21          xdata  volatile char  inbuf[ILEN];            /* 输入缓冲器*/
+  22          #define   CTRL_Q  0x11                 /* Control+Q 字符码*/
+  23          #define   CTRL_S  0x13                 /* Control+S 字符码*/
+  24          volatile bit   sendfull;               /* 输出缓冲器已满标识位*/
+  25          volatile bit   sendactive;             /* 输出进行中标识位*/
+  26          volatile bit   sendstop;               /* 输出缓冲器已空标识位*/
+  27          volatile bit   bufempty;
+  28          //串口2
+  29          #define  OLEN2  32                     
+  30          volatile unsigned char  ostart2;      
+  31          volatile unsigned char  oend2;         
+  32          xdata    volatile char  outbuf2[OLEN2];         
+  33          #define  ILEN2  16                     
+  34          volatile unsigned char  istart2;       
+  35          volatile unsigned char  iend2;         
+  36          xdata    volatile char  inbuf2[ILEN2];          
+  37          #define   CTRL_Q  0x11                 
+  38          #define   CTRL_S  0x13                 
+  39          volatile bit   sendfull2;              
+  40          volatile bit   sendactive2;            
+  41          volatile bit   sendstop2;              
+  42          volatile bit   bufempty2;
+  43          //串口3
+  44          #define  OLEN3  32                     
+  45          volatile unsigned char  ostart3;       
+  46          volatile unsigned char  oend3;         
+  47          xdata    char  outbuf3[OLEN3];        
+  48          #define  ILEN3  16                     
+  49          volatile unsigned char  istart3;       
+  50          volatile unsigned char  iend3;         
+  51          xdata    char  inbuf3[ILEN3];          
+  52          #define   CTRL_Q  0x11                 
+  53          #define   CTRL_S  0x13                 
+  54          volatile bit   sendfull3;              
+C51 COMPILER V9.52.0.0   USART                                                             09/21/2015 00:52:50 PAGE 2   
+
+  55          volatile bit   sendactive3;            
+  56          volatile bit   sendstop3;             
+  57          volatile bit   bufempty3;
+  58          //串口4
+  59          #define  OLEN4  32                     
+  60          volatile unsigned char  ostart4;                
+  61          volatile unsigned char  oend4;                  
+  62          xdata    char  outbuf4[OLEN4];         
+  63          #define  ILEN4  16                      
+  64          volatile unsigned char  istart4;                
+  65          volatile unsigned char  iend4;                  
+  66          xdata    char  inbuf4[ILEN4];           
+  67          #define   CTRL_Q  0x11                
+  68          #define   CTRL_S  0x13                
+  69          volatile bit   sendfull4;                      
+  70          volatile bit   sendactive4;                     
+  71          volatile bit   sendstop4;
+  72          volatile bit   bufempty4;
+  73          xdata   char COMx;
+  74          //========================================================================
+  75          // 函数: print(char comx)
+  76          // 描述: 将printf重定向到其中一个串口。
+  77          // 参数: comx，COM1：串口1；COM2：串口2；COM3：串口3； COM4：串口4。
+  78          // 返回: none.
+  79          // 版本: VER1.1
+  80          // 日期: 2014-11-17
+  81          // 备注: 
+  82          //========================================================================
+  83          void print(char comx)
+  84          {
+  85   1          COMx=comx;
+  86   1      }
+  87          //========================================================================
+  88          // 函数: putbuf (char c) 
+  89          // 描述: 发送一个字节数据到串口。
+  90          // 参数: c，8位数据
+  91          // 返回: none.
+  92          // 版本: VER1.1
+  93          // 日期: 2014-11-17
+  94          // 备注: 
+  95          //========================================================================
+  96          void putbuf (char c)  
+  97          {       
+  98   1              switch (COMx)
+  99   1              {
+ 100   2                      case COM1:
+ 101   2          default  ://默认串口1
+ 102   2                                                              //P55=0;
+ 103   2                    while(sendfull);
+ 104   2                                                              //P55=1;
+ 105   2                    if (!sendfull)
+ 106   2                    {                                      // transmit only if buffer not full  
+ 107   3                        if (!sendactive && !sendstop)      // if transmitter not active:
+ 108   3                        {                                            
+ 109   4                            sendactive = 1;                // transfer the first character direct
+ 110   4                            SBUF = c;                      // to SBUF to start transmission      
+ 111   4                        }
+ 112   3                        else                               // otherwize:
+ 113   3                        {                                                  
+ 114   4                            outbuf[oend] = c; 
+ 115   4                            if(++oend>= OLEN) oend = 0;
+ 116   4                            bufempty = 0;
+C51 COMPILER V9.52.0.0   USART                                                             09/21/2015 00:52:50 PAGE 3   
+
+ 117   4                            if (oend==ostart)  sendfull = 1;
+ 118   4      
+ 119   4                        }                               
+ 120   3                    }
+ 121   2                    break;
+ 122   2          case COM2:
+ 123   2                    while(sendfull2);
+ 124   2                    if (!sendfull2)  
+ 125   2                    {                                       // transmit only if buffer not full  
+ 126   3                        if (!sendactive2 && !sendstop2) 
+ 127   3                        {                                   // if transmitter not active:        
+ 128   4                            sendactive2 = 1;                // transfer the first character direct
+ 129   4                            S2BUF = c;                      //to SBUF to start transmission      
+ 130   4                        }
+ 131   3                        else        
+ 132   3                        {                                   // otherwize:                      
+ 133   4                            outbuf2[oend2] = c; 
+ 134   4                            if(++oend2>= OLEN2)       oend2 = 0;
+ 135   4                            bufempty2 = 0;
+ 136   4                            if (oend2==ostart2)  sendfull2 = 1;
+ 137   4      
+ 138   4                         }                               
+ 139   3                    }
+ 140   2                    break;
+ 141   2          case COM3:
+ 142   2                    while(sendfull3);
+ 143   2                    if (!sendfull3)
+ 144   2                    {                                       // transmit only if buffer not full  
+ 145   3                        if (!sendactive3 && !sendstop3)  
+ 146   3                        {                                   // if transmitter not active:        
+ 147   4                            sendactive3 = 1;                // transfer the first character direct
+ 148   4                            S3BUF = c;                      //to SBUF to start transmission      
+ 149   4                        }
+ 150   3                        else  
+ 151   3                        {                                   // otherwize:                      
+ 152   4                            outbuf3[oend3] = c; 
+ 153   4                            if(++oend3>= OLEN3)       oend3 = 0;
+ 154   4                            bufempty3 = 0;
+ 155   4                            if (oend3==ostart3)  sendfull3 = 1;
+ 156   4      
+ 157   4                        }                               
+ 158   3                    }
+ 159   2                    break;
+ 160   2          case COM4:
+ 161   2                    while(sendfull4);
+ 162   2                    if (!sendfull4) 
+ 163   2                    {                                       // transmit only if buffer not full  
+ 164   3                        if (!sendactive4 && !sendstop4) 
+ 165   3                        {                                   // if transmitter not active:        
+ 166   4                            sendactive4 = 1;                // transfer the first character direct
+ 167   4                            S4BUF = c;                      //to SBUF to start transmission      
+ 168   4                        }
+ 169   3                        else  
+ 170   3                        {                                   // otherwize:                      
+ 171   4                            outbuf4[oend4] = c; 
+ 172   4                            if(++oend4>= OLEN4)       oend4 = 0;
+ 173   4                            bufempty4 = 0;
+ 174   4                            if (oend4==ostart4)  sendfull4 = 1;
+ 175   4                        }                               
+ 176   3                    }
+ 177   2                    break;
+ 178   2         }
+C51 COMPILER V9.52.0.0   USART                                                             09/21/2015 00:52:50 PAGE 4   
+
+ 179   1      }
+ 180          
+ 181          //========================================================================
+ 182          // 函数: putchar (char c) 
+ 183          // 描述: 发送一个字节数据到串口，需调用putbuf。
+ 184          // 参数: c，8位数据
+ 185          // 返回: none.
+ 186          // 版本: VER1.1
+ 187          // 日期: 2014-11-17
+ 188          // 备注: 
+ 189          //=======================================================================
+ 190          char putchar (char c)  
+ 191          {
+ 192   1          if (c == '\n')  
+ 193   1          {                                   /* expand new line character:         */
+ 194   2              putbuf (0x0D);                  /* send CR before LF for <new line>   */
+ 195   2          }
+ 196   1          putbuf (c);                         /* send character                     */
+ 197   1          return (c);                         /* return character: ANSI requirement */
+ 198   1      }
+ 199          
+ 200          
+ 201          /****************************************************************************/
+ 202          /*       _getkey:  interrupt controlled _getkey                             */
+ 203          /****************************************************************************/
+ 204          /*char _getkey (void)  {
+ 205          
+ 206          char c;
+ 207          
+ 208            while (!RI);
+ 209            c = SBUF;
+ 210            RI = 0;
+ 211            return (c);
+ 212          }*/
+ 213          
+ 214          /***************************/
+ 215          /*       串口1中断服务程序  */
+ 216          /***************************/
+ 217          void serial () interrupt 4  
+ 218          {     /* use registerbank 1 for interrupt    */
+ 219   1          unsigned char c;
+ 220   1          bit   start_trans = 0;
+ 221   1          static char cnt7f = 0;          //7f的计数器  
+ 222   1          if (RI)  
+ 223   1          {                               /* 检测是否为接收中断 */
+ 224   2              c = SBUF;                   /* 读SBUF */
+ 225   2              RI = 0;                     /* 清除RI */
+ 226   2                                      if (SBUF == 0x7f)                                   /* 检测接受数据是否为0x7f */
+ 227   2              {                                                               //
+ 228   3                  if (++cnt7f >= 16)                  /*若连续检测到16个0x7f，那么认为是下载流 */
+ 229   3                  {                                                   //
+ 230   4                      IAP_CONTR=0X60;                 /* 跳转到ISP监控区 */
+ 231   4                  }                                                                                                                                           
+ 232   3              }                                                       
+ 233   2              else                                                
+ 234   2              {                                                          
+ 235   3                  cnt7f = 0;                              
+ 236   3              }
+ 237   2              switch (c) 
+ 238   2              {                                       /* process character                   */
+ 239   3                  case CTRL_S:
+ 240   3                              sendstop = 1;           /* if Control+S stop transmission      */
+C51 COMPILER V9.52.0.0   USART                                                             09/21/2015 00:52:50 PAGE 5   
+
+ 241   3                              break;
+ 242   3                  case CTRL_Q:
+ 243   3                              start_trans = sendstop; /* if Control+Q start transmission     */
+ 244   3                              sendstop = 0;
+ 245   3                              break;
+ 246   3      
+ 247   3                  default:                       /* read all other characters into inbuf*/
+ 248   3                  /* if (istart + ILEN != iend)  {
+ 249   3                      inbuf[iend] = c;
+ 250   3                      if(++iend>=ILEN)iend=0;
+ 251   3                  }*/                                  
+ 252   3                              break;
+ 253   3             }
+ 254   2          }
+ 255   1         /* if (TI || start_trans)               // 若是发送中断 
+ 256   1          {                     
+ 257   1              TI = 0;                           // 清除TI        
+ 258   1              if(!bufempty&&!sendstop) 
+ 259   1              {
+ 260   1                  SBUF = outbuf[ostart];
+ 261   1                  if(++ostart>= OLEN) ostart = 0;
+ 262   1                  if(ostart == oend) bufempty = 1;
+ 263   1                  sendfull = 0;
+ 264   1              }
+ 265   1              else sendactive = 0;             //if all transmitted clear 'sendactive
+ 266   1          }*/
+ 267   1      }
+ 268          void serial2 () interrupt 8
+ 269          {
+ 270   1                      unsigned char c;
+ 271   1          bit   start_trans2 = 0;
+ 272   1      
+ 273   1          if (RI2)  
+ 274   1          {                         
+ 275   2              c = S2BUF;                        
+ 276   2              CLR_RI2();                          /* clear interrupt request flag        */
+ 277   2              switch (c)  
+ 278   2              {                   
+ 279   3                  case CTRL_S:
+ 280   3                                sendstop2 = 1;                
+ 281   3                                break;
+ 282   3      
+ 283   3                  case CTRL_Q:
+ 284   3                                start_trans2 = sendstop2;      
+ 285   3                                sendstop2 = 0;
+ 286   3                                break;
+ 287   3      
+ 288   3                  default:                       
+ 289   3                /* if (istart + ILEN != iend)  {
+ 290   3                    inbuf[iend] = c;
+ 291   3                    if(++iend>=ILEN)iend=0;
+ 292   3                  }*/                                  
+ 293   3                  break;
+ 294   3              }
+ 295   2          }
+ 296   1          if (TI2 || start_trans2)  
+ 297   1          {                    
+ 298   2              CLR_TI2();                                
+ 299   2              if(!bufempty2&&!sendstop2)
+ 300   2              {
+ 301   3                  S2BUF = outbuf2[ostart2];
+ 302   3                  if(++ostart2>= OLEN2)       ostart2 = 0;
+C51 COMPILER V9.52.0.0   USART                                                             09/21/2015 00:52:50 PAGE 6   
+
+ 303   3                  if(ostart2 == oend2) bufempty2 = 1;
+ 304   3                  sendfull2 = 0;
+ 305   3              }
+ 306   2              else sendactive2 = 0;             
+ 307   2          }
+ 308   1      }
+ 309          void serial3 () interrupt 17
+ 310          {
+ 311   1                      unsigned char c;
+ 312   1          bit   start_trans3 = 0;
+ 313   1          if (RI3)  
+ 314   1          {                                    
+ 315   2              c = S3BUF;                       
+ 316   2              CLR_RI3();                        
+ 317   2              switch (c)  
+ 318   2              {                         
+ 319   3                  case CTRL_S:
+ 320   3                              sendstop3 = 1;                   
+ 321   3                              break;
+ 322   3                  case CTRL_Q:
+ 323   3                              start_trans3 = sendstop3;         
+ 324   3                              sendstop3 = 0;
+ 325   3                              break;
+ 326   3      
+ 327   3                  default:                            
+ 328   3             /* if (istart + ILEN != iend)  {
+ 329   3                inbuf[iend] = c;
+ 330   3                                              if(++iend>=ILEN)iend=0;
+ 331   3              }*/
+ 332   3                              break;
+ 333   3             }
+ 334   2          }
+ 335   1          if (TI3 || start_trans3)  
+ 336   1          {                      
+ 337   2              CLR_TI3();                                 
+ 338   2              if(!bufempty3&&!sendstop3) 
+ 339   2              {
+ 340   3                  S3BUF = outbuf3[ostart3];
+ 341   3                  if(++ostart3>= OLEN3)       ostart3 = 0;
+ 342   3                  if(ostart3 == oend3) bufempty3 = 1;
+ 343   3                  sendfull3 = 0;
+ 344   3              }
+ 345   2              else sendactive3 = 0;            
+ 346   2          }
+ 347   1      }
+ 348          void serial4 () interrupt 18
+ 349          {
+ 350   1                      unsigned char c;
+ 351   1          bit   start_trans4 = 0;
+ 352   1      
+ 353   1          if (RI4)  
+ 354   1          {                         
+ 355   2              c = S4BUF;                        
+ 356   2              CLR_RI4();                          /* clear interrupt request flag        */
+ 357   2              switch (c)  
+ 358   2              {                    
+ 359   3                  case CTRL_S:
+ 360   3                              sendstop4 = 1;               
+ 361   3                              break;
+ 362   3      
+ 363   3                  case CTRL_Q:
+ 364   3                              start_trans4 = sendstop4;      
+C51 COMPILER V9.52.0.0   USART                                                             09/21/2015 00:52:50 PAGE 7   
+
+ 365   3                              sendstop4 = 0;
+ 366   3                              break;
+ 367   3      
+ 368   3                  default:                       /* read all other characters into inbuf*/
+ 369   3                    /* if (istart + ILEN != iend)  {
+ 370   3                        inbuf[iend] = c;
+ 371   3                        if(++iend>=ILEN)iend=0;
+ 372   3                      }*/                                   
+ 373   3                  break;
+ 374   3              }
+ 375   2          }
+ 376   1          if (TI4 || start_trans4)  
+ 377   1          {          // if transmitter interrupt            
+ 378   2               CLR_TI4();                         // clear interrupt request flag        
+ 379   2               if(!bufempty4&&!sendstop4) 
+ 380   2               {
+ 381   3                    S4BUF = outbuf4[ostart4];
+ 382   3                    if(++ostart4>= OLEN4)     ostart4 = 0;
+ 383   3                    if(ostart4 == oend4) bufempty4 = 1;
+ 384   3                    sendfull4 = 0;
+ 385   3               }
+ 386   2               else sendactive4 = 0;             
+ 387   2          }
+ 388   1      }
+ 389          void Serialbegin(u32 baud,u8 sum,...)
+ 390          {
+ 391   1                u8    i,n;
+ 392   1                u32   j;
+ 393   1                va_list args;
+ 394   1                      va_start(args, sum);
+ 395   1                      
+ 396   1                      j = (MAIN_Fosc / 4) / baud;     //按1T计算
+ 397   1                      if(j >= 65536UL)        return ;        //错误
+ 398   1                      j = 65536UL - j;
+ 399   1                      
+ 400   1                      AUXR &= ~(1<<4);        //Timer stop            
+ 401   1                      AUXR &= ~(1<<3);        //Timer2 set As Timer
+ 402   1                      AUXR |=  (1<<2);        //Timer2 set as 1T mode
+ 403   1                      T2H = (u8)(j>>8);
+ 404   1                      T2L = (u8)j;
+ 405   1                      IE2  &= ~(1<<2);        //禁止中断
+ 406   1                      AUXR &= ~(1<<3);        //定时
+ 407   1                      AUXR |=  (1<<4);        //Timer run enable
+ 408   1              
+ 409   1                      
+ 410   1                      for(n=0;n<sum;n++)
+ 411   1          { 
+ 412   2              switch(va_arg(args,char))
+ 413   2              {                       
+ 414   3                  case COM1:                  
+ 415   3                              for(i=0; i<OLEN; i++)   outbuf[i] = 0;
+ 416   3                              for(i=0; i<ILEN; i++)   inbuf[i] = 0;
+ 417   3                              PS = 1; //高优先级中断
+ 418   3                              SCON = (SCON & 0x3f) | UART_8bit_BRTx;
+ 419   3                              AUXR |= 0x01;           //S1 BRT Use Timer2;    
+ 420   3                              REN = 1;        //允许接收
+ 421   3                              P_SW1 = (P_SW1 & 0x3f) | (UART1_SW_P30_P31 & 0xc0);     //切换IO
+ 422   3                              CLK_DIV &= ~(1<<4);//串口1正常工作方式
+ 423   3                              ES = 1; //允许串口1中断
+ 424   3                              break;
+ 425   3                  case COM2:
+ 426   3                              for(i=0; i<OLEN2; i++)  outbuf[i] = 0;
+C51 COMPILER V9.52.0.0   USART                                                             09/21/2015 00:52:50 PAGE 8   
+
+ 427   3                              for(i=0; i<ILEN2; i++)  inbuf[i] = 0;
+ 428   3                              for(i=0; i<OLEN; i++)   outbuf[i] = 0;
+ 429   3                              for(i=0; i<ILEN; i++)   inbuf[i] = 0;
+ 430   3                              S2CON=0X50;//8位可变波特率，允许接收
+ 431   3                              IE2 |=0x01;//允许串口2中断
+ 432   3                              break;          
+ 433   3                  case COM3:
+ 434   3                              for(i=0; i<OLEN3; i++)  outbuf[i] = 0;
+ 435   3                              for(i=0; i<ILEN3; i++)  inbuf[i] = 0;
+ 436   3                              S3CON=0x10;//8位可变波特率，允许接收，使用定时器2作为波特率发生器
+ 437   3                              IE2 |=0x08;//允许串口3中断
+ 438   3                              break;
+ 439   3                      
+ 440   3                  case COM4:  
+ 441   3                              for(i=0; i<OLEN4; i++)  outbuf[i] = 0;
+ 442   3                              for(i=0; i<ILEN4; i++)  inbuf[i] = 0;
+ 443   3                              S4CON=0x10;//8位可变波特率，允许接收，使用定时器2作为波特率发生器
+ 444   3                              IE2 |=0x10;//允许串口4中断
+ 445   3      
+ 446   3                              break;
+ 447   3                  default:
+ 448   3                              break;          
+ 449   3              }               
+ 450   2          }
+ 451   1                      EA=1;//开总中断
+ 452   1                      va_end(args);
+ 453   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1375    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    210      53
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =     16       4
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

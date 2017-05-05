@@ -1,0 +1,77 @@
+C51 COMPILER V9.52.0.0   MENU                                                              09/21/2015 00:52:51 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE MENU
+OBJECT MODULE PLACED IN .\output\menu.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE src\menu.c LARGE OMF2 BROWSE DEBUG PRINT(.\output\menu.lst) OBJECT(.\out
+                    -put\menu.obj)
+
+line level    source
+
+   1          #include"12864.h"
+   2          
+   3          void draw_curve(u8 x, u8 y)
+   4          {
+   5   1              u8 i, j, k;
+   6   1              lcd_select;
+   7   1              i = 8 - y / 8;
+   8   1              j = y % 8;
+   9   1      
+  10   1      
+  11   1              for (k = 1; k <= 8; k++)
+  12   1              {
+  13   2                      lcd_address(k, x); //清除曲线更新之前相同X坐标的点
+  14   2                      transfer_data(0x00); //
+  15   2              }
+  16   1      
+  17   1              lcd_address(i, x + 3);
+  18   1              transfer_data(0x00); //
+  19   1              lcd_address(i, x + 2);
+  20   1              transfer_data(0x00); //
+  21   1              lcd_address(i, x + 1);
+  22   1              transfer_data(0x00); //
+  23   1      
+  24   1              lcd_address(i, x);
+  25   1              transfer_data(0x80 >> j); //
+  26   1              lcd_unselect;
+  27   1      
+  28   1      }
+  29          
+  30          void display_gb(u8 page)
+  31          {
+  32   1      
+  33   1              display_string_8x16(page, 0, "->"); /*在第1 页，第10 列显示字符串*/
+  34   1      }
+  35          
+  36          void clear_gb(u8 page)
+  37          {
+  38   1              u8 k;
+  39   1              for (k = 1; k <= 16; k++)
+  40   1              {
+  41   2                      lcd_address(page, k); //清除曲线更新之前相同X坐标的点
+  42   2                      transfer_data(0x00); //
+  43   2                      lcd_address(page + 1, k); //清除曲线更新之前相同X坐标的点
+  44   2                      transfer_data(0x00); //
+  45   2              }
+  46   1      
+  47   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    243    ----
+   CONSTANT SIZE    =      3    ----
+   XDATA SIZE       =   ----       7
+   PDATA SIZE       =   ----    ----
+C51 COMPILER V9.52.0.0   MENU                                                              09/21/2015 00:52:51 PAGE 2   
+
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

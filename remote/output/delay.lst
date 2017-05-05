@@ -1,0 +1,125 @@
+C51 COMPILER V9.52.0.0   DELAY                                                             09/21/2015 00:52:50 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE DELAY
+OBJECT MODULE PLACED IN .\output\delay.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE src\delay.c LARGE OMF2 BROWSE DEBUG PRINT(.\output\delay.lst) OBJECT(.\o
+                    -utput\delay.obj)
+
+line level    source
+
+   1          //========================================================================
+   2          //      STCunio Studio淘宝http://shop112966725.taobao.com
+   3          //      STCunio Studio QQ群:117112538
+   4          //      作者：mingbozhu
+   5          //      联系方式：13724273732
+   6          //      邮箱：mingbozhu@yeah.net
+   7          //      修改日期2014.11.7
+   8          //      版本V1.1
+   9          //========================================================================
+  10          
+  11          /*************  功能说明        **************
+  12          
+  13          本文件为STC15xxx系列的延时程序,用户几乎可以不修改这个程序.
+  14          
+  15          ******************************************/
+  16          
+  17          #include        "delay.h"
+  18          #include        "STC15Fxxxx.H"
+  19          //========================================================================
+  20          // 函数: delay_ms(u32 ms)
+  21          // 描述: 延时函数。
+  22          // 参数: ms,要延时的ms数. 自动适应主时钟.
+  23          // 返回: none.
+  24          // 版本: VER1.1
+  25          // 日期: 2014-11-7
+  26          // 备注: 
+  27          //========================================================================
+  28          
+  29          void  delay_ms(u32 ms)
+  30          {
+  31   1           unsigned int i;
+  32   1               do{
+  33   2                    i = MAIN_Fosc / 13000;
+  34   2                        while(--i)    ;   //14T per loop
+  35   2           }while(--ms);
+  36   1      }
+  37          //========================================================================
+  38          // 函数: delay_us(u8 _us)
+  39          // 描述: 延时函数。
+  40          // 参数: _us,要延时的us数. 自动适应主时钟.
+  41          // 返回: none.
+  42          // 版本: VER1.1
+  43          // 日期: 2014-11-7
+  44          // 备注: 
+  45          //========================================================================
+  46          void delay_us(u8 _us)
+  47          {
+  48   1               do{    
+  49   2                       #if MAIN_Fosc==5529600L
+  50   2                       NOP(1);
+  51   2                       #elif MAIN_Fosc==11059200L
+                               NOP(7);
+                               #elif MAIN_Fosc==12000000L
+                               NOP(8);
+C51 COMPILER V9.52.0.0   DELAY                                                             09/21/2015 00:52:50 PAGE 2   
+
+                               #elif MAIN_Fosc==18432000L
+                               NOP(14);
+                               #elif MAIN_Fosc==20000000L
+                               NOP(15);
+                               #elif MAIN_Fosc==22118400L
+                               NOP(17);
+                               #elif MAIN_Fosc==24000000L
+                                NOP(20);
+                               #elif MAIN_Fosc==27000000L
+                               NOP(22);
+                               #elif MAIN_Fosc==30000000L
+                               NOP(24);
+                               #elif MAIN_Fosc==33000000L
+                               NOP(27);
+                               #elif MAIN_Fosc==33177600L
+                               NOP(27);
+                               #endif
+  72   2           }
+  73   1                      while(--_us);
+  74   1      }
+  75          
+  76          
+  77          
+  78          //========================================================================
+  79          // 函数: delay_10us(u16 _10us)
+  80          // 描述: 延时函数。
+  81          // 参数: _10us,要延时的10us数. 自动适应主时钟.
+  82          // 返回: none.
+  83          // 版本: VER1.1
+  84          // 日期: 2014-11-7
+  85          // 备注: 
+  86          //========================================================================
+  87          void delay_10us(u16 _10us)
+  88          {
+  89   1                      unsigned int i;
+  90   1               do{
+  91   2                    i = MAIN_Fosc / 1400000;
+  92   2                        while(--i)    ;   //14T per loop
+  93   2           }while(--_10us);
+  94   1      }
+  95          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     61    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----       4
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

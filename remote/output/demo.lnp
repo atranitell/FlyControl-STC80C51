@@ -1,0 +1,14 @@
+".\output\STARTUP.obj",
+".\output\demo.obj",
+".\output\GPIO.obj",
+".\output\USART.obj",
+".\output\ADC.obj",
+".\output\delay.obj",
+".\output\NRF24L01.obj",
+".\output\spi.obj",
+".\output\12864.obj",
+".\output\eInterrupt.obj",
+".\output\menu.obj" 
+TO ".\output\demo" 
+
+PRINT(".\output\demo.map") REMOVEUNUSED 

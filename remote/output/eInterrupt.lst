@@ -1,0 +1,280 @@
+C51 COMPILER V9.52.0.0   EINTERRUPT                                                        09/21/2015 00:52:51 PAGE 1   
+
+
+C51 COMPILER V9.52.0.0, COMPILATION OF MODULE EINTERRUPT
+OBJECT MODULE PLACED IN .\output\eInterrupt.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE src\eInterrupt.c LARGE OMF2 BROWSE DEBUG PRINT(.\output\eInterrupt.lst) 
+                    -OBJECT(.\output\eInterrupt.obj)
+
+line level    source
+
+   1          #include"eInterrupt.h"
+   2          
+   3          void  setHighPolity(u8 interruptNum)
+   4          {
+   5   1           switch(interruptNum)
+   6   1           {
+   7   2              case INT0:   
+   8   2                                PX0=PolityHigh;         //设置优先级
+   9   2                                break;
+  10   2              case TIMER0:
+  11   2                                PT0=PolityHigh;
+  12   2                                break;
+  13   2              case INT1:   
+  14   2                                PX1=PolityHigh;
+  15   2                                break;
+  16   2              case TIMER1:
+  17   2                                PT1=PolityHigh;       //高优先级中断
+  18   2                                break;
+  19   2              case UART1:
+  20   2                                PS =PolityHigh;       //高优先级中断
+  21   2                                break;
+  22   2              case ADC:
+  23   2                                PADC=PolityHigh;
+  24   2                                break;
+  25   2              case LVD:
+  26   2                                PLVD=PolityHigh;
+  27   2                                break;
+  28   2              case PCA:  
+  29   2                                PPCA=PolityHigh;
+  30   2                                break;
+  31   2              case UART2:
+  32   2                                IP2|=PolityHigh;
+  33   2                                break;
+  34   2              case SPI:         
+  35   2                                IP2|=0x02;  
+  36   2                                break;
+  37   2              default:
+  38   2                                break;
+  39   2           }
+  40   1      }
+  41          void  setLowPolity(u8 interruptNum)
+  42          {
+  43   1           switch(interruptNum)
+  44   1           {
+  45   2              case INT0:   
+  46   2                                PX0=PolityLow;         //设置优先级
+  47   2                                break;
+  48   2              case TIMER0:
+  49   2                                PT0=PolityLow;
+  50   2                                break;
+  51   2              case INT1:   
+  52   2                                PX1=PolityLow;
+  53   2                                break;
+  54   2              case TIMER1:
+C51 COMPILER V9.52.0.0   EINTERRUPT                                                        09/21/2015 00:52:51 PAGE 2   
+
+  55   2                                PT1=PolityLow;        //高优先级中断
+  56   2                                break;
+  57   2              case UART1:
+  58   2                                PS =PolityLow;        //高优先级中断
+  59   2                                break;
+  60   2              case ADC:
+  61   2                                PADC=PolityLow;
+  62   2                                break;
+  63   2              case LVD:
+  64   2                                PLVD=PolityLow;
+  65   2                                break;
+  66   2              case PCA:  
+  67   2                                PPCA=PolityLow;
+  68   2                                break;
+  69   2              case UART2:
+  70   2                                IP2&=0xFE;
+  71   2                                break;
+  72   2              case SPI:  
+  73   2                                IP2&=0xFD;  
+  74   2                                break;
+  75   2              default:
+  76   2                                break;
+  77   2           }
+  78   1      }
+  79          void    attachInterrupt(u8 interruptNum ,u8 mode)//PolityHigh or PolityLow
+  80          {
+  81   1              switch (interruptNum)
+  82   1              {
+  83   2                      case INT0: 
+  84   2                                                      EX0=1;              //允许外部中断0中断
+  85   2                                                      IT0=mode;           //中断触发模式
+  86   2                                                      break;
+  87   2          
+  88   2                      case INT1: 
+  89   2                        EX1=1;
+  90   2                                                      IT1=mode;
+  91   2                                                      break;
+  92   2          
+  93   2                      case INT2: 
+  94   2                  INT_CLKO |=  0x10;  //无优先级设置，允许外部中断2中断
+  95   2                                                      break;
+  96   2          
+  97   2                      case INT3: 
+  98   2                  INT_CLKO |=  0x20;  //无优先级设置，允许外部中断3中断
+  99   2                                                      break;
+ 100   2          
+ 101   2                      case INT4: 
+ 102   2                  INT_CLKO |=  0x40;  //无优先级设置，允许外部中断4中断
+ 103   2                                                      break;
+ 104   2                      default: 
+ 105   2                                                      break;
+ 106   2              }
+ 107   1      }
+ 108          void detachInterrupt(u8 interruptNum)
+ 109          {
+ 110   1                      switch(interruptNum)
+ 111   1              {
+ 112   2                              case INT0: EX0=0;
+ 113   2                                                              break;
+ 114   2                              case INT1: EX1=0;
+ 115   2                                                              break;
+ 116   2                              case INT2: INT_CLKO &= 0xef;
+C51 COMPILER V9.52.0.0   EINTERRUPT                                                        09/21/2015 00:52:51 PAGE 3   
+
+ 117   2                                                              break;
+ 118   2                              case INT3: INT_CLKO &= 0xdf;
+ 119   2                                                              break;
+ 120   2                              case INT4: INT_CLKO &= 0xbf;
+ 121   2                                                              break;
+ 122   2                              default:
+ 123   2                                                              break;
+ 124   2              }
+ 125   1      }
+ 126          void    Timer0_attachInterrupt(u16 time)
+ 127          {
+ 128   1          u8 TH0_TEMP,TL0_TEMP;
+ 129   1          u16 TIM_Value;
+ 130   1                      TR0 = 0;                //停止计数
+ 131   1                      ET0 = 1;        //允许中断
+ 132   1      
+ 133   1                      TMOD &= ~0x03;  //工作模式,0: 16位自动重装, 1: 16位定时/计数, 2: 8位自动重装, 3: 16位自动重装, 不可屏蔽中
+             -断
+ 134   1                      AUXR |=  0x80;  //1T
+ 135   1                      TMOD &= ~0x04;  //定时
+ 136   1              
+ 137   1                      INT_CLKO &= ~0x01;      //不输出时钟
+ 138   1                      TIM_Value     = 65536UL - (MAIN_Fosc /1000*time/1000);          //初值
+ 139   1                      TH0_TEMP = (u8)(TIM_Value >> 8);
+ 140   1                      TL0_TEMP = (u8)TIM_Value;
+ 141   1                      TH0=TH0_TEMP;
+ 142   1                      TL0=TL0_TEMP;
+ 143   1                      TR0 = 1;        //开始运行
+ 144   1      }
+ 145          void  Timer0_detachInterrupt()
+ 146          {
+ 147   1          ET0 = 0;    //关闭中断
+ 148   1      }
+ 149          void  Timer1_attachInterrupt(u16 time)
+ 150          {
+ 151   1          u8 TH1_TEMP,TL1_TEMP;
+ 152   1          u16 TIM_Value;
+ 153   1                      TR1 = 0;                //停止计数
+ 154   1                      ET1 = 1;        //允许中断              
+ 155   1                      TMOD &= ~0x30;  //工作模式,0: 16位自动重装, 1: 16位定时/计数, 2: 8位自动重装, 3: 16位自动重装, 不可屏蔽中
+             -断
+ 156   1                      AUXR |=  0x40;  //1T
+ 157   1                      TMOD &= ~0x40;  //定时
+ 158   1              
+ 159   1                      INT_CLKO &= ~0x02;      //不输出时钟
+ 160   1                      TIM_Value     = 65536UL - (MAIN_Fosc /1000*time/1000);          //初值
+ 161   1                      TH1_TEMP = (u8)(TIM_Value >> 8);
+ 162   1                      TL1_TEMP = (u8)TIM_Value;
+ 163   1                      TH1=TH1_TEMP;
+ 164   1                      TL1=TL1_TEMP;
+ 165   1                      TR1 = 1;        //开始运行
+ 166   1      }
+ 167          void  Timer1_detachInterrupt()
+ 168          {
+ 169   1          ET1 = 0;    //关闭中断
+ 170   1      }
+ 171          void  Timer2_attachInterrupt(u16 time)
+ 172          {
+ 173   1          u8 TH2_TEMP,TL2_TEMP;
+ 174   1          u16 TIM_Value;
+ 175   1                      AUXR &= ~0x10;          //停止计数
+ 176   1                      IE2  |= 0x04;   //允许中断
+C51 COMPILER V9.52.0.0   EINTERRUPT                                                        09/21/2015 00:52:51 PAGE 4   
+
+ 177   1                        //定时器2无优先级设置
+ 178   1                        //定时器2被固定为16位重装模式
+ 179   1              
+ 180   1                      AUXR |=  0x04;  //1T
+ 181   1                      AUXR &= ~0x08;  //定时
+ 182   1              
+ 183   1                      INT_CLKO &= ~0x04;      //不输出时钟
+ 184   1                      TIM_Value     = 65536UL - (MAIN_Fosc /1000*time/1000);          //初值
+ 185   1                      TH2_TEMP = (u8)(TIM_Value >> 8);
+ 186   1                      TL2_TEMP = (u8)TIM_Value;
+ 187   1                      T2H=TH2_TEMP;
+ 188   1                      T2L=TL2_TEMP;
+ 189   1                      AUXR |= 0x10;   //开始运行
+ 190   1      }
+ 191          void  Timer2_detachInterrupt()
+ 192          {
+ 193   1          IE2  &= ~0x04;      //关闭中断
+ 194   1      }
+ 195          void  Timer3_attachInterrupt(u16 time)
+ 196          {
+ 197   1          u8 TH3_TEMP,TL3_TEMP;
+ 198   1          u16 TIM_Value;
+ 199   1                      T4T3M &= ~0x08;         //停止计数
+ 200   1                      IE2  |= 0x20;   //允许中断
+ 201   1                        //定时器3无优先级设置
+ 202   1                        //定时器3被固定为16位重装模式
+ 203   1              
+ 204   1                      T4T3M |=  0x02; //1T
+ 205   1                      T4T3M &= ~0x04; //定时
+ 206   1              
+ 207   1                      T4T3M &= ~0x01; //不输出时钟
+ 208   1                      TIM_Value     = 65536UL - (MAIN_Fosc /1000*time/1000);          //初值
+ 209   1                      TH3_TEMP = (u8)(TIM_Value >> 8);
+ 210   1                      TL3_TEMP = (u8)TIM_Value;
+ 211   1                      T3H=TH3_TEMP;
+ 212   1                      T3L=TL3_TEMP;
+ 213   1                      T4T3M |= 0x08;  //开始运行
+ 214   1      }
+ 215          void  Timer3_detachInterrupt()
+ 216          {
+ 217   1          IE2  &= ~0x20;      //关闭中断
+ 218   1      }
+ 219          void  Timer4_attachInterrupt(u16 time)
+ 220          {
+ 221   1          u8 TH4_TEMP,TL4_TEMP;
+ 222   1          u16 TIM_Value;
+ 223   1                      T4T3M &= ~0x80;         //停止计数
+ 224   1                      IE2  |= 0x40;   //允许中断
+ 225   1                        //定时器4无优先级设置
+ 226   1                        //定时器4被固定为16位重装模式
+ 227   1              
+ 228   1                      T4T3M |=  0x20; //1T
+ 229   1                      T4T3M &= ~0x40; //定时
+ 230   1              
+ 231   1                      T4T3M &= ~0x10; //不输出时钟
+ 232   1                      TIM_Value     = 65536UL - (MAIN_Fosc /1000*time/1000);          //初值
+ 233   1                      TH4_TEMP = (u8)(TIM_Value >> 8);
+ 234   1                      TL4_TEMP = (u8)TIM_Value;
+ 235   1                      T4H=TH4_TEMP;
+ 236   1                      T4L=TL4_TEMP;
+ 237   1                      T4T3M |= 0x80;  //开始运行
+ 238   1      }
+C51 COMPILER V9.52.0.0   EINTERRUPT                                                        09/21/2015 00:52:51 PAGE 5   
+
+ 239          void  Timer4_detachInterrupt()
+ 240          {
+ 241   1          IE2  &= ~0x40;      //关闭中断
+ 242   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    539    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
